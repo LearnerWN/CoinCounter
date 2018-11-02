@@ -159,7 +159,7 @@ def coinCount(coinImage, i, isVisualize=False, isSave=True):
     '''
     if isVisualize:
         showImg(coinImage, 'the image')
-    img_Gold= detectGold(img)
+    img_Gold= detectGold(coinImage)
     circles_gold, img_circles_glod = detectCircles(img_Gold, i, isSave=isSave, name="gold")
     circles, img_circles = detectCircles(coinImage, i, circles_gold=circles_gold, isSave=isSave)
     if isVisualize:
@@ -172,22 +172,3 @@ def coinCount(coinImage, i, isVisualize=False, isSave=True):
         value = countValue(circles, circles_gold=circles_gold)
 
     return round(value, 1)
-
-# 测试代码
-# img = cv2.imread('pic/10.jpg')
-img = loadImage("pic/10")
-# img_HSV = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-# showImg(img_HSV)
-value = coinCount(img,10)
-print(value)
-
-# img_RGB = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-# showImg(img_RGB)
-# value = coinCount(img,10)
-# print("value of the image:{value}".format(value=value))
-# res, mask = detectGold(img)
-# showImg(res)
-# value = coinCount(res,10)
-# print("value of the image:{value}".format(value=value))
-# img_HSV = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-# showImg(img_HSV)
