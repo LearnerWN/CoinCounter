@@ -1,27 +1,31 @@
-
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+import tkinter as tk
+from PIL import Image, ImageTk
 
-def loadImage(imagePath):
+
+def loadImage(image_Path):
     '''
     加载图片
-    :param imagePath: 图片路径
+    :param image_Path: 图片路径
     :return: 返回加载到的图片
     '''
-    img = cv2.imread(imagePath+'.jpg')
+    img = cv2.imread(image_Path)
     return img
 
-def showImg(image, titlestr=""):
+
+def showImg(image, title_str=""):
     '''
     展示图片
     :param image: 图片对象
-    :param titlestr: 图片标题，默认为空
+    :param title_str: 图片标题，默认为空
     '''
     plt.imshow(image)
     plt.xticks([]), plt.yticks([])
-    plt.title(titlestr)
+    plt.title(title_str)
     plt.show()
+
 
 def saveImage(image, str, path='pic/'):
     '''
@@ -30,7 +34,8 @@ def saveImage(image, str, path='pic/'):
     :param str: 文件名
     :param path: 保存路径
     '''
-    cv2.imwrite(path+ str +'.jpg', image)
+    cv2.imwrite(path + str + '.jpg', image)
+
 
 def detectCircles(image, i, circles_gold=None, isSave=True, name=""):
     '''
@@ -45,6 +50,7 @@ def detectCircles(image, i, circles_gold=None, isSave=True, name=""):
     # 输出图像大小，方便根据图像大小调节minRadius和maxRadius
     print(image.shape)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # 设置霍夫圆检测参数（根据情况进行参数调整）
     circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 500, param1=100, param2=30, minRadius=5, maxRadius=400)
     # 输出检测到圆的个数
     print(circles)
@@ -101,7 +107,8 @@ def detectCircles(image, i, circles_gold=None, isSave=True, name=""):
                     saveImage(image_circles, imageName)
         return circles, image_circles
 
-def countValue(circles,circles_gold=None):
+
+def countValue(circles, circles_gold=None):
     '''
     计算金额总数
     :param circles: 整个图片中所有的圆形信息
@@ -121,7 +128,7 @@ def countValue(circles,circles_gold=None):
     else:
         for circle in circles[0]:
             for circle_gold in circles_gold[0]:
-                if abs(circle[0]-circle_gold[0])<=20 and abs(circle[1]-circle_gold[1])<=20:
+                if abs(circle[0] - circle_gold[0]) <= 20 and abs(circle[1] - circle_gold[1]) <= 20:
                     count = count + 0.5
                     circle[2] = 0
             radius = int(circle[2])
@@ -131,6 +138,7 @@ def countValue(circles,circles_gold=None):
                 count = count + 0.1
     return count
 
+
 def detectGold(image_BGR):
     '''
     对图像做掩膜处理去除掉五毛钱意外的图像信息
@@ -139,7 +147,7 @@ def detectGold(image_BGR):
     '''
     # 将bgr图像转换为HSV
     image_HSV = cv2.cvtColor(image_BGR, cv2.COLOR_BGR2HSV)
-    # 设置颜色过滤区间
+    # 设置颜色过滤区间（根据情况进行参数设置）
     lower_hsv = np.array([0, 180, 80])
     upper_hsv = np.array([255, 255, 170])
     # 掩膜
@@ -148,20 +156,20 @@ def detectGold(image_BGR):
     return res
 
 
-def coinCount(coinImage, i, isVisualize=False, isSave=True):
+def coinCount(coin_image, i, isVisualize=False, isSave=True):
     '''
     检测图像中的金额
-    :param coinImage: 原图像
+    :param coin_image: 原图像
     :param i: 图像序号
     :param isVisualize: 是否要进行可视化
     :param isSave: 是否要保存
     :return: 金额
     '''
     if isVisualize:
-        showImg(coinImage, 'the image')
-    img_Gold= detectGold(coinImage)
+        showImg(coin_image, 'the image')
+    img_Gold = detectGold(coin_image)
     circles_gold, img_circles_glod = detectCircles(img_Gold, i, isSave=isSave, name="gold")
-    circles, img_circles = detectCircles(coinImage, i, circles_gold=circles_gold, isSave=isSave)
+    circles, img_circles = detectCircles(coin_image, i, circles_gold=circles_gold, isSave=isSave)
     if isVisualize:
         showImg(img_circles)
         if img_circles_glod:
@@ -170,5 +178,90 @@ def coinCount(coinImage, i, isVisualize=False, isSave=True):
         value = countValue(circles)
     else:
         value = countValue(circles, circles_gold=circles_gold)
-
     return round(value, 1)
+
+
+# 界面
+window = tk.Tk()
+window.title('硬币检测')
+window.geometry('1200x600')
+
+
+def paintResource():
+    canvas_img_resource = tk.Canvas(window, bg='white', height=460, width=345)
+    canvas_img_resource.place(x=200, y=10, anchor='nw')
+    img_resource = Image.open(image_path.get())
+    img_resource_resize = img_resource.resize((345, 460))
+    photo = ImageTk.PhotoImage(img_resource_resize)
+    image = canvas_img_resource.create_image(0, 0, anchor='nw', image=photo)
+    window.mainloop()
+
+
+def paintProcess():
+    canvas_img_precess = tk.Canvas(window, bg='white', height=460, width=345)
+    canvas_img_precess.place(x=680, y=10, anchor='nw')
+    wifi_img = Image.open(image_path.get().split('/')[0] + '/image_circles' + image_path.get().split('/')[1])
+    wifi_img1 = wifi_img.resize((345, 460))
+    photo = ImageTk.PhotoImage(wifi_img1)
+    image = canvas_img_precess.create_image(0, 0, anchor='nw', image=photo)
+    window.mainloop()
+
+
+def hit_me():
+    global on_hit
+    # 从 False 状态变成 True 状态
+    if on_hit == False:
+        on_hit = True
+        i = image_path.get().split('/')[1].split('.')[0]
+        img = loadImage(image_path.get())
+        count_value = coinCount(img, i)
+        # 显示value数据
+        value.set('总金额：' + str(count_value))
+        paintProcess()
+    else:
+        # 从 True 状态变成 False 状态
+        on_hit = False
+        # 设置文字为空
+        value.set('')
+
+
+# 图像路径输入框
+image_path = tk.Entry(window,
+                      font=('Arial', 15))
+image_path.place(x=330, y=470)
+
+# 图像路径输入框标签
+image_path_label = tk.Label(window,
+                            text=" 图像存储路径",
+                            font=('Arial', 12))
+
+image_path_label.place(x=220, y=470)
+
+button_resource = tk.Button(window,
+                            # 显示在按钮上的文字
+                            text='导入原始图像',
+                            width=18, height=2,
+                            # 点击按钮式执行的命令
+                            command=paintResource)
+button_resource.place(x=220, y=510, anchor='nw')
+
+# 文字变量储存器
+value = tk.StringVar()
+value_area = tk.Label(window,
+                      # 使用 textvariable 替换 text, 因为这个可以变化
+                      textvariable=value,
+                      bg='pink', font=('Arial', 20), width=15, height=2)
+value_area.place(x=750, y=490, anchor='nw')
+
+button_detect = tk.Button(window,
+                          # 显示在按钮上的文字
+                          text='硬币检测',
+                          width=18, height=2,
+                          # 点击按钮式执行的命令
+                          command=hit_me)
+# 按钮位置
+button_detect.place(x=400, y=510, anchor='nw')
+# 默认初始状态为 False
+on_hit = False
+
+window.mainloop()
